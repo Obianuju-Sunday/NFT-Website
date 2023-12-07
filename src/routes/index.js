@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const authController = require('../controllers/authController');
 
-// Define your routes
-router.get('/', (req, res) => {
-    res.send('Welcome to the API');
-});
-
-// More route definitions...
+router.get('/google', authController.googleAuth);
+router.get('/google/callback', authController.googleCallback);
+router.get('/logout', authController.logout);
 
 module.exports = router;
