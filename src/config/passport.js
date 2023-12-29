@@ -1,24 +1,12 @@
+require("dotenv").config();
 
-require('dotenv').config()
-const passport =require("passport")
+const {KindeClient, GrantType} = require("@kinde-oss/kinde-nodejs-sdk");
 
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-
-passport.use(new GoogleStrategy({
-    clientID: process.env.OAUTH_CLIENT_ID,
-    clientSecret: process.env.OAUTH_CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/google/callback'
-    // callbackURL: '/auth/google/callback'
-}, (accessToken, refreshToken, profile, done) => {
-    // Handle user data (e.g., save user to database)
-    return done(null, profile);
-}));
-
-passport.serializeUser(function(user, done) {
-    done(null, user);
-    });
-    
-    passport.deserializeUser(function(user, done) {
-    done(null, user);
-    });
-
+const options = {
+	domain: process.env.KINDE_DOMAIN,
+	clientId: process.env.KINDE_CLIENT_ID,
+	clientSecret: process.env.KINDE_CLIENT_SECRET,
+	redirectUri: process.env.KINDE_REDIRECT_URI,
+	logoutRedirectUri: process.env.KINDE_LOGOUT_REDIRECT_URI,
+	grantType: GrantType.PKCE
+};
