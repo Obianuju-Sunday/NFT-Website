@@ -9,6 +9,8 @@ const cors = require('cors')
 const database = mongoose.connection;
 const routes = require('./routes/index.js');
 // const session = require('express-session');
+const AppError = require('./utils/appError.js')
+const globalErrorHandler = require('./controllers/errorController.js')
 
 
 database.on('error', (error) => {
@@ -28,6 +30,17 @@ app.use(express.json());
 
 app.use(
     '/api', routes);
+
+app.all('*', (req, res, next) => {
+    // res.status(404).json({
+    //     status: 'fail!',
+    //     message: `Can't find ${req.originalUrl} on the server` 
+    // })
+
+    next(new AppError(`Can't find ${req.originalUrl} on the server`, 404))
+})
+
+app.use(globalErrorHandler)
 
 // // express session 
 // app.use(session({
