@@ -1,5 +1,7 @@
 const User = require('./../models/user');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const AppError = require('./../utils/appError.js')
+// const globalErrorHandler = require('./../controllers/errorController.js')
 
 exports.signup = async (req, res, next) => {
     const newUser = await User.create({
@@ -22,7 +24,7 @@ exports.signup = async (req, res, next) => {
             }
         });
     } catch (error) {
-        res.status(501).json({ message: error.message })
+        next(new AppError("Internal server error", 500))
     }
 };
 
@@ -32,7 +34,7 @@ exports.login = async (req, res, next) => {
     try {
         // Check email and password exist
         if (!email || !password) {
-            return res.status(400).json({ message: 'Please provide email and password!' })
+            return next(new AppError('Please provide email and password!', 404))
         }
 
         // Check is user exist and password is correct
@@ -47,12 +49,22 @@ exports.login = async (req, res, next) => {
             token: ''
         })
     } catch (error) {
-        res.status(501).json({ message: error.message })
+        next(new AppError("Internal server error", 500))
     }
 };
 
 exports.getAllUsers = async (req, res, next) => {
     const users = await User.find();
+
+    if (users.length === 0) {
+        return res.status(200).json({
+            status: 'Success!',
+            message: 'No users found in the database',
+            data: {
+                users: []
+            }
+        });
+    }
 
     try {
         res.status(200).json({
@@ -63,21 +75,77 @@ exports.getAllUsers = async (req, res, next) => {
             }
         })
     } catch (error) {
-        res.status(501).json({ message: error.message })
+        next(new AppError("Internal server error", 500))
     }
 };
 
+exports.getOneUser = async (req, res, next) => {
+    const userId = req.params.userId;
 
-// // Router.post('/post', async (req, res) => {
-// //     const data = new Model({
-// //         name: req.body.name,
-// //         email: req.body.email
-// //     })
+    // Check if userId is not present or invalid
+    if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
+        return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long and can only contain letters and numbers.", 400));
+    }
 
-// //     try {
-// //         const dataToSave = await data.save()
-// //         res.status(200).json(dataToSave)
-// //     } catch (error) { 
-// //         res.status(501).json({message: error.message})
-// //     }
-// // })
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return next(new AppError("User not found", 404));
+        }
+
+        res.status(200).json({
+            status: 'Success!',
+            data: {
+                user
+            }
+        });
+    } catch (error) {
+        next(new AppError("Internal server error", 500))
+    }
+};
+
+exports.updateUser = async (req, res, next) => {
+    const userId = req.params.userId;
+    const dataToUpdate = req.body;
+    const options = { new: true }
+
+    try {
+
+        const result = await User.findByIdAndUpdate(
+            userId, dataToUpdate, options
+        )
+
+        res.status(200).json({
+            status: 'Success!',
+            data: {
+                message: "User updated successfully!",
+                user: result
+            },
+        })
+
+    } catch (error) {
+        res.status(501).json({ message: error.message })
+    }
+}
+
+exports.deleteUser = async (req, res, next) => {
+
+    const user = await User.findByIdAndDelete(req.params.userId);
+
+    if (!user) {
+        return next(new AppError("User not found", 404));
+    }
+    try {
+        const updatedUserList = await User.find();
+        res.status(200).json({
+            status: 'Success!',
+            data: {
+                message: `User with the id ${req.params.userId} has been Deleted`,
+                newUserList: updatedUserList,
+            }
+        });
+    } catch (error) {
+        next(new AppError("Internal server error", 500))
+    }
+};

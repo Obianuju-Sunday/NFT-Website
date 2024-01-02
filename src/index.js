@@ -32,22 +32,11 @@ app.use(
     '/api', routes);
 
 app.all('*', (req, res, next) => {
-    // res.status(404).json({
-    //     status: 'fail!',
-    //     message: `Can't find ${req.originalUrl} on the server` 
-    // })
 
     next(new AppError(`Can't find ${req.originalUrl} on the server`, 404))
 })
 
 app.use(globalErrorHandler)
-
-// // express session 
-// app.use(session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false
-// }));
 
 app.listen(3000, () => {
     console.log(`Server started at ${3000}`)
