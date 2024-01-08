@@ -110,11 +110,18 @@ exports.updateUser = async (req, res, next) => {
     const dataToUpdate = req.body;
     const options = { new: true }
 
+      // Check if userId is not present or invalid
+      if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
+        return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long and can only contain letters and numbers.", 400));
+    }
+
     try {
 
         const result = await User.findByIdAndUpdate(
             userId, dataToUpdate, options
         )
+
+      
 
         res.status(200).json({
             status: 'Success!',
@@ -125,7 +132,7 @@ exports.updateUser = async (req, res, next) => {
         })
 
     } catch (error) {
-        res.status(501).json({ message: error.message })
+        next(new AppError("Internal server error", 500))
     }
 }
 
