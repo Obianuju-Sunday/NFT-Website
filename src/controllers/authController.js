@@ -40,8 +40,6 @@ exports.login = async (req, res, next) => {
         // Check is user exist and password is correct
         const user = await User.findOne({ email }).select('+password');
 
-        console.log(user);
-
         //  If everything is ok, send token to client
         const token = "";
         res.status(200).json({
@@ -110,24 +108,28 @@ exports.updateUser = async (req, res, next) => {
     const dataToUpdate = req.body;
     const options = { new: true }
 
-      // Check if userId is not present or invalid
-      if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
+    // Check if userId is not present or invalid
+    if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
         return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long and can only contain letters and numbers.", 400));
     }
 
     try {
 
-        const result = await User.findByIdAndUpdate(
+        // Check if the user exists in the database before updating
+        const existingUser = await User.findById(userId);
+        if (!existingUser) {
+            return next(new AppError("User not found", 404));
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
             userId, dataToUpdate, options
         )
-
-      
 
         res.status(200).json({
             status: 'Success!',
             data: {
                 message: "User updated successfully!",
-                user: result
+                user: updatedUser
             },
         })
 
@@ -148,7 +150,7 @@ exports.deleteUser = async (req, res, next) => {
         res.status(200).json({
             status: 'Success!',
             data: {
-                message: `User with the id ${req.params.userId} has been Deleted`,
+                message: `User ${user.name} with the id ${req.params.userId} has been Deleted`,
                 newUserList: updatedUserList,
             }
         });
