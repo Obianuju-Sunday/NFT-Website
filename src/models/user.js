@@ -3,9 +3,17 @@ const validator = require('validator');
 const bcrypt = require('bcryptjs')
 
 const userSchema = new mongoose.Schema({
-  name: {
+  fullName: {
     type: String,
-    required: [true, 'Please tell us your name!']
+    maxLength: [32, 'Your full name must not exceed 32 characters'],
+    minLength: [8, 'Your user name must be more than 8 characters'],
+    required: [true, 'Please tell us your full name!']
+  },
+  userName: {
+    type: String,
+    maxLength: [18, 'Your user name must not exceed 18 characters'],
+    minLength: [3, 'Your user name must be more than 3 characters'],
+    required: [true, 'Please tell us your user name!']
   },
   email: {
     type: String,
@@ -23,6 +31,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
+    select: false,
     required: [true, 'Please confirm your password!'],
     validate: {
       //  This only work on create and save!!

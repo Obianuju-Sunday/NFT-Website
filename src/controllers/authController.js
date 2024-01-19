@@ -5,7 +5,8 @@ const AppError = require('./../utils/appError.js')
 
 exports.signup = async (req, res, next) => {
     const newUser = await User.create({
-        name: req.body.name,
+        fullName: req.body.fullName,
+        userName: req.body.userName,
         email: req.body.email,
         password: req.body.password,
         passwordConfirm: req.body.passwordConfirm
@@ -102,6 +103,8 @@ exports.getOneUser = async (req, res, next) => {
         next(new AppError("Internal server error", 500))
     }
 };
+
+
 
 exports.updateUser = async (req, res, next) => {
     const userId = req.params.userId;
