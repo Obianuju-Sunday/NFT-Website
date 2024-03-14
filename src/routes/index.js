@@ -3,8 +3,8 @@ const router = express.Router();
 const authController = require('./../controllers/authController')
 
 
-router.post("/signup", authController.signup);
-router.post("/login", authController.login);
+router.post("/auth/signup", authController.signup);
+router.post("/auth/login", authController.login);
 router.get("/users", authController.getAllUsers);
 router.get("/user/:userId", authController.getOneUser);
 router.delete("/user/:userId", authController.deleteUser);
