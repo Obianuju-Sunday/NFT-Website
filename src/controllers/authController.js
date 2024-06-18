@@ -157,8 +157,8 @@ exports.getOneUser = async (req, res, next) => {
     const userId = req.params.userId;
 
     // Check if userId is not present or invalid
-    if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
-        return next(new AppError(`Please provide a valid user ID. IDs must be 24 characters long, can only contain letters and numbers and no special characters like ${req.originalUrl}.`, 400));
+    if (!userId || userId.length < 24 || userId.length > 24) {
+        return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long, can only contain letters and numbers and no special characters.", 400));
     }
 
     try {
