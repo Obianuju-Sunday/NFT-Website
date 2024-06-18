@@ -157,9 +157,11 @@ exports.getOneUser = async (req, res, next) => {
     const userId = req.params.userId;
 
     // Check if userId is not present or invalid
-    if (!userId || userId.length < 24 || userId.length > 24) {
+    if (!userId || userId.length < 24 || userId.length > 24 ) {
         return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long, can only contain letters and numbers and no special characters.", 400));
     }
+
+    // --- /[^a-zA-Z0-9]/.test(userId) --- This can be useful for validating request params , I just didn't need it
 
     try {
         const user = await User.findById(userId);
