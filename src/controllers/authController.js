@@ -54,69 +54,77 @@ exports.signup = async (req, res, next) => {
     }
 };
 
+exports.login = async (req, res, next) => {
+
+    const { email, password } = req.body
+    // Check if username and password is provided
+    if (!email || !password) {
+        return res.status(400).json({
+            message: "Email or Password not present",
+        })
+    }
+
+    try {
+        const user = await User.findOne({ email, password })
+        if (!user) {
+            res.status(401).json({
+                message: "Login not successful",
+                error: "User not found",
+            })
+        } else {
+            res.status(200).json({
+                message: "Login successful",
+                user,
+            })
+        }
+    } catch (error) {
+        res.status(400).json({
+            message: "An error occurred",
+            error: error.message,
+        })
+    }
+}
+
 // exports.login = async (req, res, next) => {
 //     const { email, password } = req.body;
 
 //     try {
-//         // Check email and password exist
+//         // Check if email and password are provided
 //         if (!email || !password) {
-//             return next(new AppError('Please provide email and password!', 404))
+//             return next(new AppError('Please provide email and password!', 400));
 //         }
 
-//         // Check is user exist and password is correct
+//         // Check if user exists
 //         const user = await User.findOne({ email }).select('+password');
+//         if (!user) {
+//             return next(new AppError('Incorrect email or password!', 401));
+//         }
 
-//         //  If everything is ok, send token to client
-//         const token = "";
+//         // Check if password is correct
+//         const passwordIsCorrect = await user.correctPassword(password, user.password);
+//         if (!passwordIsCorrect) {
+//             return next(new AppError('Incorrect email or password!', 401));
+//         }
+
+//         // If everything is correct, generate JWT token
+//         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//             expiresIn: process.env.JWT_EXPIRES_IN
+//         });
+
+//         // Send token to client
 //         res.status(200).json({
 //             status: 'Success!',
-//             token: ''
-//         })
+//             token,
+//             user: {
+//                 id: user._id,
+//                 fullName: user.fullName,
+//                 email: user.email
+//             }
+//         });
 //     } catch (error) {
-//         next(new AppError("Internal server error", 500))
+//         next(new AppError("Internal server error", 500));
 //     }
 // };
-
-exports.login = async (req, res, next) => {
-    const { email, password } = req.body;
-
-    try {
-        // Check if email and password are provided
-        if (!email || !password) {
-            return next(new AppError('Please provide email and password!', 400));
-        }
-
-        // Check if user exists
-        const user = await User.findOne({ email }).select('+password');
-        if (!user) {
-            return next(new AppError('Incorrect email or password!', 401));
-        }
-
-        // Check if password is correct
-        const passwordIsCorrect = await user.correctPassword(password, user.password);
-        if (!passwordIsCorrect) {
-            return next(new AppError('Incorrect email or password!', 401));
-        }
-
-        // If everything is correct, generate JWT token
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRES_IN
-        });
-
-        // Send token to client
-        res.status(200).json({
-            status: 'Success!',
-            token,
-            user: {
-                id: user._id,
-                fullName: user.fullName,
-                email: user.email
-            }
-        });
-    } catch (error) {
-        next(new AppError("Internal server error", 500));
-    }
-};
 
 
 exports.getAllUsers = async (req, res, next) => {
@@ -150,7 +158,7 @@ exports.getOneUser = async (req, res, next) => {
 
     // Check if userId is not present or invalid
     if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
-        return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long and can only contain letters and numbers.", 400));
+        return next(new AppError(`Please provide a valid user ID. IDs must be 24 characters long, can only contain letters and numbers and no special characters like ${req.originalUrl}.`, 400));
     }
 
     try {
@@ -289,51 +297,51 @@ exports.deleteUser = async (req, res, next) => {
 
 
 
-    // const loginUser = async (req, res) => {
-    //     try {
-    //         const { email, password } = req.body;
+// const loginUser = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
 
-    //         // Check if email and password are provided
-    //         if (!email || !password) {
-    //             return res.status(400).json({ error: 'Please provide email and password!' });
-    //         }
+//         // Check if email and password are provided
+//         if (!email || !password) {
+//             return res.status(400).json({ error: 'Please provide email and password!' });
+//         }
 
-    //         // Find user by email
-    //         const currentUser = await User.findOne({ email }).select('+password');
+//         // Find user by email
+//         const currentUser = await User.findOne({ email }).select('+password');
 
-    //         // Check if user exists
-    //         if (!currentUser) {
-    //             return res.status(404).json({ error: 'User not found!' });
-    //         }
+//         // Check if user exists
+//         if (!currentUser) {
+//             return res.status(404).json({ error: 'User not found!' });
+//         }
 
-    //         // Compare passwords
-    //         const passwordIsCorrect = await bcrypt.compare(password, currentUser.password);
-    //         console.log(passwordIsCorrect);
+//         // Compare passwords
+//         const passwordIsCorrect = await bcrypt.compare(password, currentUser.password);
+//         console.log(passwordIsCorrect);
 
-    //         // Check if password is correct
-    //         if (!passwordIsCorrect) {
-    //             return res.status(400).json({ error: 'Incorrect email or password!' });
-    //         }
+//         // Check if password is correct
+//         if (!passwordIsCorrect) {
+//             return res.status(400).json({ error: 'Incorrect email or password!' });
+//         }
 
-    //         // Generate JWT token
-    //         const token = jwt.sign({ id: currentUser._id, status: currentUser.status }, process.env.ACCESS_TOKEN);
+//         // Generate JWT token
+//         const token = jwt.sign({ id: currentUser._id, status: currentUser.status }, process.env.ACCESS_TOKEN);
 
-    //         // Send token and user information to client
-    //         return res.header({ 'auth-token': token }).json({ token, username: currentUser.username });
-    //     } catch (error) {
-    //         console.error(error);
-    //         return res.status(500).json({ error: 'Internal server error' });
-    //     }
-    // };
+//         // Send token and user information to client
+//         return res.header({ 'auth-token': token }).json({ token, username: currentUser.username });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
 
 
-    // const changeUserPassword = async (req, res, next) => {};
+// const changeUserPassword = async (req, res, next) => {};
 
-    // const logoutUser = async (req, res, next) => {
-    //     req.user = null;
-    //     next();
-    // };
+// const logoutUser = async (req, res, next) => {
+//     req.user = null;
+//     next();
+// };
 
-    // const forgotUserPassword = async (req, res, next) => {};
+// const forgotUserPassword = async (req, res, next) => {};
 
 

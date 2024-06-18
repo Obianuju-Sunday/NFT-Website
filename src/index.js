@@ -11,6 +11,7 @@ const routes = require('./routes/index.js');
 // const session = require('express-session');
 const AppError = require('./utils/appError.js')
 const globalErrorHandler = require('./controllers/errorController.js')
+const port = '4000'
 
 
 database.on('error', (error) => {
@@ -26,6 +27,7 @@ const app = express();
 app.use(cors())
 app.options('*', cors())
 
+
 app.use(express.json());
 
 app.use(
@@ -38,6 +40,6 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler)
 
-app.listen(3000, () => {
-    console.log(`Server started at ${3000}`)
+app.listen(port, () => {
+    console.log(`Server started at port ${port}`)
 })
