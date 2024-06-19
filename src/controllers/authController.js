@@ -59,13 +59,13 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body
     // Check if username and password is provided
     if (!email || !password) {
-        next(new AppError( 'Email and password must be present. Please provide the two of them.', 400))
+        next(new AppError('Email and password must be present. Please provide the two of them.', 400))
     }
 
     try {
         const user = await User.findOne({ email, password })
         if (!user) {
-                next(new AppError( 'Login not successful. User not found.', 401))
+            next(new AppError('Login not successful. User not found.', 401))
         } else {
             res.status(200).json({
                 message: "Login successful",
@@ -149,7 +149,7 @@ exports.getOneUser = async (req, res, next) => {
     const userId = req.params.userId;
 
     // Check if userId is not present or invalid
-    if (!userId || userId.length < 24 || userId.length > 24 ) {
+    if (!userId || userId.length < 24 || userId.length > 24) {
         return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long, can only contain letters and numbers and no special characters.", 400));
     }
 
@@ -210,7 +210,9 @@ exports.updateUser = async (req, res, next) => {
     }
 }
 
-// Okay so while testing the update user function i deliberately entered an id that has no user, here is the id I used - '66719295f576a15a439c9aem' but i got an internal server error instead of a user not found error that i expected, but why?. After some research I found out that a mongoose ODM (Object Data Modeling ) library for mongodb , ObjectIds are internally represented as a 24-character hexadecimal string. And this hexadecimal is a base-16 number system, meaning that it uses 16 digits (0-9 and A-F) to represent numbers and since mongodb has a 24 character fixed length , it is then a mixture of the hexadecimals to get the 24 characters. Anything other the hexadecimals is considered by mongoose as Invalid. So I got that error because I added 'm' to that ID. Did you learn something new? Here is the code to validate a userId before using it in database queries - you may find it handy! const mongoose = require('mongoose');
+// Okay so while testing the update user function i deliberately entered an id that has no user, here is the id I used - '66719295f576a15a439c9aem' but i got an internal server error instead of a user not found error that i expected, but why?. After some research I found out that a mongoose ODM (Object Data Modeling ) library for mongodb , ObjectIds are internally represented as a 24-character hexadecimal string. And this hexadecimal is a base-16 number system, meaning that it uses 16 digits (0-9 and A-F) to represent numbers and since mongodb has a 24 character fixed length , it is then a mixture of the hexadecimals to get the 24 characters. Anything other the hexadecimals is considered by mongoose as Invalid. So I got that error because I added 'm' to that ID. Did you learn something new? Here is the code to validate a userId before using it in database queries - you may find it handy! 
+
+// const mongoose = require('mongoose');
 
 // if (!mongoose.Types.ObjectId.isValid(userId)) {
 //     return next(new AppError("Invalid user ID", 400));
@@ -220,24 +222,36 @@ exports.updateUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
 
-    const user = await User.findByIdAndDelete(req.params.userId);
+    const userId = await req.params.userId;
 
-    if (!user) {
-        return next(new AppError("User not found", 404));
+    if (userId.length < 24 || userId.length > 24 || /[^a-zA-Z0-9]/.test(userId)) {
+
+        return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long and can only contain letters and numbers.", 400));
     }
+
     try {
-        const updatedUserList = await User.find();
+
+        const user = await User.findByIdAndDelete(req.params.userId);
+        if (!user) {
+            return next(new AppError("User not found", 404));
+        }
+
         res.status(200).json({
             status: 'Success!',
             data: {
-                message: `User ${user.name} with the id ${req.params.userId} has been Deleted`,
-                newUserList: updatedUserList,
+                message: `User ${user.userName} with the id ${req.params.userId} has been Deleted`,
+                deletedUserInfo: user,
             }
+
         });
+
     } catch (error) {
+
         next(new AppError("Internal server error", 500))
     }
 };
+
+
 
 // const registerUser = async (req, res) => {
 //     try {
@@ -347,3 +361,26 @@ exports.deleteUser = async (req, res, next) => {
 // const forgotUserPassword = async (req, res, next) => {};
 
 
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>> OTHER AND PROBABLY EASY WAYS TO DO THINGS <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+// Deleting a user 
+
+
+// exports.deleteUser = async (req, res, next) => {
+//     const user = await User.findByIdAndDelete(req.params.userId);
+//     try {
+//         if (user) {
+//             res.status(200).json({
+//                 status: 'Success!',
+//                 data: {
+//                     message: `User ${user.userName} with the id ${req.params.userId} has been Deleted`,
+//                     deletedUser: user,
+//                 }
+//             });
+//         } else {
+//             return next(new AppError("User not found", 404));
+//         }
+//     } catch (error) {
+//         next(new AppError("Internal server error", 500))
+//     }
+// };
