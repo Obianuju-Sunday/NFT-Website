@@ -210,6 +210,13 @@ exports.updateUser = async (req, res, next) => {
     }
 }
 
+// Okay so while testing the update user function i deliberately entered an id that has no user, here is the id I used - '66719295f576a15a439c9aem' but i got an internal server error instead of a user not found error that i expected, but why?. After some research I found out that a mongoose ODM (Object Data Modeling ) library for mongodb , ObjectIds are internally represented as a 24-character hexadecimal string. And this hexadecimal is a base-16 number system, meaning that it uses 16 digits (0-9 and A-F) to represent numbers and since mongodb has a 24 character fixed length , it is then a mixture of the hexadecimals to get the 24 characters. Anything other the hexadecimals is considered by mongoose as Invalid. So I got that error because I added 'm' to that ID. Did you learn something new? Here is the code to validate a userId before using it in database queries - you may find it handy! const mongoose = require('mongoose');
+
+// if (!mongoose.Types.ObjectId.isValid(userId)) {
+//     return next(new AppError("Invalid user ID", 400));
+// }
+
+
 
 exports.deleteUser = async (req, res, next) => {
 
