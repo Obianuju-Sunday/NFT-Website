@@ -59,18 +59,13 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body
     // Check if username and password is provided
     if (!email || !password) {
-        return res.status(400).json({
-            message: "Email or Password not present",
-        })
+        next(new AppError( 'Email and password must be present. Please provide the two of them.', 400))
     }
 
     try {
         const user = await User.findOne({ email, password })
         if (!user) {
-            res.status(401).json({
-                message: "Login not successful",
-                error: "User not found",
-            })
+                next(new AppError( 'Login not successful. User not found.', 401))
         } else {
             res.status(200).json({
                 message: "Login successful",
@@ -78,10 +73,7 @@ exports.login = async (req, res, next) => {
             })
         }
     } catch (error) {
-        res.status(400).json({
-            message: "An error occurred",
-            error: error.message,
-        })
+        next(new AppError('Internal server error', 500))
     }
 }
 
@@ -133,7 +125,7 @@ exports.getAllUsers = async (req, res, next) => {
     if (users.length === 0) {
         return res.status(200).json({
             status: 'Success!',
-            message: 'No users found in the database',
+            message: 'No user found in the database',
             data: {
                 users: []
             }
@@ -189,7 +181,7 @@ exports.updateUser = async (req, res, next) => {
     const options = { new: true }
 
     // Check if userId is not present or invalid
-    if (!userId || userId.length < 24 || /[^a-zA-Z0-9]/.test(userId)) {
+    if (!userId || userId.length < 24 || userId.length > 24 || /[^a-zA-Z0-9]/.test(userId)) {
         return next(new AppError("Please provide a valid user ID. IDs must be 24 characters long and can only contain letters and numbers.", 400));
     }
 
@@ -217,6 +209,7 @@ exports.updateUser = async (req, res, next) => {
         next(new AppError("Internal server error", 500))
     }
 }
+
 
 exports.deleteUser = async (req, res, next) => {
 
